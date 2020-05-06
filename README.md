@@ -25,3 +25,47 @@ experiment_RSVP.html : main app entry point.
 write_data.php : get data and write to db.
 create_tableemo.sql : create table.
 jsPsych-master : web framework.
+
+# AWS
+## 1. Config sur console aws
+Amazon Linux 2 AMI (HVM), SSD Volume Type -(64-bit x86) / (64-bit Arm)
+t2-micro
+Network = ICONICS_VPC
+Subnet ICONICS_SUB_FRONT
+Auto assign pulic ip (required for internet connection)
+8Go ssd (default)
+Security group : ICONICS_SG_WEB_FRONT
+Key pair : econics-staging : iconics-staging.pem
+
+## 2. SSH
+ssh -i "iconics-staging.pem" ec2-user@172.21.2.249 # replace ip with private ip
+### Install and start Docker
+sudo yum update -y
+sudo amazon-linux-extras install docker -y
+sudo service docker start
+### Add ec2-user to the Docker group
+sudo usermod -a -G docker ec2-user
+sudo systemctl enable docker
+### Install Docker-Compose
+sudo curl -L "https://github.com/docker/compose/releases/download/1.25.5/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
+docker-compose --version
+### Set Timezone
+sudo rm /etc/localtime
+sudo ln -s /usr/share/zoneinfo/Europe/Paris /etc/localtime
+### Install git
+sudo yum install -y git
+
+## 3. Clone source code
+git clone https://github.com/ArnaudC/Online_Testing
+cd Online_Testing/
+git checkout aws
+
+## 4. Run docker-compose
+Exit ssh and reconnect.
+cd Online_Testing
+docker-compose up
+
+## 5. Open ports on aws
+New security group -> Allow http and mariadb port
+Assign security group
